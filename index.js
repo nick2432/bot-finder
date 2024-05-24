@@ -1,16 +1,20 @@
 const express = require("express");
 const ccxt = require("ccxt");
+const cors = require("cors");
 const { DateTime } = require("luxon");
 const math = require("mathjs");
 const mongoose = require("mongoose");
+const { ProfitLossData } = require("./db");
+const { ProcessCombination } = require("./db");
 require("dotenv").config();
 
 const app = express();
-const port = 3000;
+app.use(cors());
+const port = 4000;
 
 const INVESTMENT_AMOUNT_DOLLARS = 100;
-const MIN_PROFIT_DOLLARS = 0.7;
-const BROKERAGE_PER_TRANSACTION_PERCENT = 0.2;
+const MIN_PROFIT_DOLLARS = 0.0;
+const BROKERAGE_PER_TRANSACTION_PERCENT = 0.0;
 
 // const apiKey = "YOUR_API_KEY";
 // const secret = "YOUR_SECRET";
@@ -28,6 +32,7 @@ async function bot() {
   while (action) {
     if (Array.isArray(CombinationData)) {
       for (const combination of CombinationData) {
+        if (!action) break;
         const base = combination["base"];
         const intermediate = combination["intermediate"];
         const ticker = combination["ticker"];
@@ -38,6 +43,16 @@ async function bot() {
 
         // Check triangular arbitrage for buy-buy-sell
         console.log("BUY_BUY_SELL");
+        await ProcessCombination.deleteMany();
+
+        const RunningTicker = new ProcessCombination({
+          action: "BUY_BUY_SELL",
+          ticker1: s1,
+          ticker2: s2,
+          ticker3: s3,
+        });
+        await RunningTicker.save();
+        console.log('kjhsdfjkshd');
         await performTriangularArbitrage(
           s1,
           s2,
@@ -51,6 +66,13 @@ async function bot() {
         await sleep(1000);
         console.log("--------------------------!!!!!!!!!!----------------");
         console.log("BUY_SELL_SELL");
+         const RunningTicker1 = new ProcessCombination({
+          action: "BUY_SELL_SELL",
+          ticker1: s1,
+          ticker2: s2,
+          ticker3: s3,
+        });
+        await RunningTicker1.save();
         await performTriangularArbitrage(
           s3,
           s2,
@@ -101,6 +123,38 @@ app.get("/stop", (req, res) => {
   res.status(200).json({ msg: "Process Terminated..." });
 });
 
+app.get('/profitLossData', async (req, res) => {
+  try {
+    // Fetch data from MongoDB
+    const data = await ProfitLossData.find();
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/combination', async (req, res) => {
+  try {
+    // Fetch data from MongoDB
+    const data = await Combination.find();
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/processcombination', async (req, res) => {
+  try {
+    // Fetch data from MongoDB
+    const data = await ProcessCombination.find();
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

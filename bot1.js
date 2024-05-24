@@ -2,7 +2,7 @@ const ccxt = require("ccxt");
 const math = require("mathjs");
 const { DateTime } = require("luxon");
 const { checkProfitLoss } = require("./result");
-
+const currentDate = new Date().toLocaleDateString();
 const exchange = new ccxt.bybit();
 const { ProfitLossData } = require("./db");
 
@@ -170,7 +170,7 @@ async function performTriangularArbitrage(
           )}`
       );
 
-      const date = DateTime.now().toFormat("HH:mm:ss");
+      const date = currentDate;
       const dataToSave = new ProfitLossData({
         profitLoss,
         date,
@@ -179,7 +179,7 @@ async function performTriangularArbitrage(
         scrip2,
         scrip3,
       });
-      const savedData = await dataToSave.console.log(">>>>", savedData);
+      const savedData = await dataToSave.save();
       return savedData;
     }
   } catch (error) {

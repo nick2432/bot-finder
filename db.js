@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 mongoose
-  .connect(`mongodb+srv://bot:${process.env.DB_KEY}@bot.zszeh7e.mongodb.net/`)
+  .connect(`mongodb+srv://bot:9sTSMwZ05qHDy6aH@bot.zszeh7e.mongodb.net/`)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Error connecting to MongoDB:", err));
 
@@ -13,7 +13,12 @@ const combinationSchema = new Schema({
   intermediate: String,
   ticker: String,
 });
-
+const runningCombination = new Schema({
+  action: String,
+  ticker1: String,
+  ticker2: String,
+  ticker3: String,
+});
 const ProfitLossSchema = new mongoose.Schema({
   profitLoss: {
     type: Number,
@@ -40,7 +45,10 @@ const ProfitLossSchema = new mongoose.Schema({
     required: true,
   },
 });
-
+const ProcessCombination = mongoose.model(
+  "ProcessCombination",
+  runningCombination
+);
 const ProfitLossData = mongoose.model("ProfitLoss", ProfitLossSchema);
 
 const Combination = mongoose.model("Combination", combinationSchema);
@@ -48,4 +56,5 @@ const Combination = mongoose.model("Combination", combinationSchema);
 module.exports = {
   Combination,
   ProfitLossData,
+  ProcessCombination,
 };
